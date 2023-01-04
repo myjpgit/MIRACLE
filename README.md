@@ -1,8 +1,6 @@
-# Towards Unsupervised Deep Graph Structure Learning
+# MIRACLE: Mining Implicit Relationships with Multi-view Unsupervised Graph Contrastive Learning
 
-This is the source code of WWW-2022 paper "Towards Unsupervised Deep Graph Structure Learning" (SUBLIME). 
-
-![The proposed framework](pipeline.png)
+This is the source code of paper "MIRACLE: Mining Implicit Relationships with Multi-view Unsupervised Graph Contrastive Learning". 
 
 ## REQUIREMENTS
 This code requires the following:
@@ -23,48 +21,16 @@ cd scripts
 
 ### Step 2: Run the experiments you want:
 
-\[Cora\]Node classification @ structure inference:
+\[Weibo Same-city\]Implicit relationships prediction:
 ```
-bash cora_si.sh
+bash samecity_lp.sh
 ```
-\[Cora\]Node classification @ structure refinement:
+\[MAG Advisor-advisee\]Implicit relationships prediction:
 ```
-bash cora_sr.sh
+bash advisor_lp.sh
 ```
-\[Cora\]Node clustering @ structure refinement:
+\[Terrorist Attacks\]Implicit relationships prediction:
 ```
-bash cora_clu.sh
-```
-\[Citeseer\]Node classification @ structure inference:
-```
-bash citeseer_si.sh
-```
-\[Citeseer\]Node classification @ structure refinement:
-```
-bash citeseer_sr.sh
-```
-\[Citeseer\]Node clustering @ structure refinement:
-```
-bash citeseer_clu.sh
-```
-\[Pubmed\]Node classification @ structure inference:
-```
-bash pubmed_si.sh
-```
-\[Pubmed\]Node classification @ structure refinement:
-```
-bash pubmed_sr.sh
+bash terror_lp.sh
 ```
 
-## Cite
-
-If you compare with, build on, or use aspects of SUBLIME framework, please cite the following:
-```
-@inproceedings{liu2022towards,
-  title={Towards unsupervised deep graph structure learning},
-  author={Liu, Yixin and Zheng, Yu and Zhang, Daokun and Chen, Hongxu and Peng, Hao and Pan, Shirui},
-  booktitle={Proceedings of the ACM Web Conference 2022},
-  pages={1392--1403},
-  year={2022}
-}
-```

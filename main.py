@@ -90,21 +90,6 @@ class Experiment:
         #print(learned_adj)
         z2, _ = model(features_v2, learned_adj, 'learner')
 
-        # # view3: Edge weights adj graph
-        # if args.maskfeat_rate_learner:
-        #     mask_v3, _ = get_feat_mask(features, args.maskfeat_rate_learner) # Data Augmentation
-        #     features_v3 = features * (1 - mask_v3)
-        # else:
-        #     features_v3 = copy.deepcopy(features)
-
-        # edge_weight_adj = edge_learner(features)
-
-        # if not args.sparse:
-        #     edge_weight_adj = symmetrize(edge_weight_adj) # Post-processor
-        #     edge_weight_adj = normalize(edge_weight_adj, 'sym', args.sparse)  # Post-processor
-
-        # z3, _ = model(features_v3, edge_weight_adj, 'learner') #edge_weightadj 带有边权值的邻接矩阵视图
-
         # view 3: anchor_weight graph
         if args.maskfeat_rate_anchor:
             mask_v3, _ = get_feat_mask(features, args.maskfeat_rate_anchor)  # Data Augmentation
@@ -127,7 +112,6 @@ class Experiment:
             # loss = model.calc_loss(z1, z2) # Calculating contrastive loss
             loss = model.calc_loss(args, z1, z2, z3)  # Calculating contrastive loss
 
-        # return loss, learned_adj # return the contrastive loss and learned adjacency matrix
         return loss, learned_adj, z2 # return the contrastive loss and learned adjacency matrix
 
     def evaluate_adj_by_cls(self, Adj, features, nfeats, nclasses, data, args):
@@ -148,7 +132,6 @@ class Experiment:
 
         for epoch in range(1, args.epochs_cls + 1):
             model.train()
-            #loss, accu = self.loss_cls(model, train_mask, features, labels)
             loss, accu, ks = self.loss_cls_lp(model, features, data, "train")
             optimizer.zero_grad()
             loss.backward() # Backward Propagation
@@ -157,7 +140,6 @@ class Experiment:
 
             if epoch % 10 == 0:
                 model.eval()
-                # val_loss, accu = self.loss_cls(model, val_mask, features, labels)
                 val_loss, accu, ks = self.loss_cls_lp(model, features, data, "val")
                 if accu > best_val:
                     bad_counter = 0
@@ -170,7 +152,6 @@ class Experiment:
                 if bad_counter >= args.patience_cls:
                     break
         best_model.eval()
-        # test_loss, test_accu = self.loss_cls(best_model, test_mask, features, labels)
         test_loss, test_accu, test_ks = self.loss_cls_lp(best_model, features, data, "test")
         return best_val, best_ks, test_accu, test_ks, best_model
 
@@ -179,10 +160,10 @@ class Experiment:
 
         # torch.cuda.set_device(args.gpu)
 
-        data, features, nfeats, labels, nclasses, adj_original, edge_index = load_data(args)  # 加入了原始图的边索引
+        data, features, nfeats, labels, nclasses, adj_original, edge_index = load_data(args)
 
         if args.dataset in ["cora", "citeseer", "pubmed"]:
-            data = train_test_split_edges(data, val_ratio=0.6, test_ratio=0.3)  # 重要步骤，生成负样本，划分训练集等
+            data = train_test_split_edges(data, val_ratio=0.6, test_ratio=0.3)
             pos_train_edge_index = data.train_pos_edge_index
             neg_train_edge_index = negative_sampling(
                 edge_index=data.train_pos_edge_index,
@@ -204,7 +185,6 @@ class Experiment:
             data.num_nodes = data.num_nodes
 
         elif args.dataset in ["samecity", "terror", "advisor"]:
-            # transform = RandomLinkSplit(is_undirected=True, num_val=0.1, num_test=0.3)
             transform = RandomLinkSplit(is_undirected=True, num_val=0.6, num_test=0.3)
             train_data, val_data, test_data = transform(data)
 
@@ -271,22 +251,18 @@ class Experiment:
             anchor_adj = normalize(anchor_adj_raw, 'sym', args.sparse) # normalize anchor_adj
             orignal_adj = normalize(anchor_adj_raw, 'sym', args.sparse) # normalize anchor_adj
             anchor_weight_adj = normalize(anchor_weight_adj_raw, 'sym', args.sparse)
-            # orignal_weight_adj = normalize(anchor_weight_adj_raw, 'sym', args.sparse)
-            # print(orignal_adj)
 
             if args.sparse: # If it is a sparse graph
                 anchor_adj_torch_sparse = copy.deepcopy(anchor_adj)  # Deep copy of anchor_adj
                 anchor_adj = torch_sparse_to_dgl_graph(anchor_adj)
-                # orignal_adj_torch_sparse = copy.deepcopy(orignal_adj)
-                # orignal_adj = torch_sparse_to_dgl_graph(orignal_adj)
                 anchor_weight_adj_torch_sparse = copy.deepcopy(anchor_weight_adj)
                 anchor_weight_adj = torch_sparse_to_dgl_graph(anchor_weight_adj)
 
             if args.type_learner == 'fgp':
                 graph_learner = FGP_learner(features.cpu(), args.k, args.sim_function, 6, args.sparse)
-            elif args.type_learner == 'mlp':
-                graph_learner = MLP_learner(2, features.shape[1], args.k, args.sim_function, 6, args.sparse,
-                                     args.activation_learner)
+            # elif args.type_learner == 'mlp':
+            #     graph_learner = MLP_learner(2, features.shape[1], args.k, args.sim_function, 6, args.sparse,
+            #                          args.activation_learner)
 
             model = GCL(nlayers=args.nlayers, in_dim=nfeats, hidden_dim=args.hidden_dim,
                          emb_dim=args.rep_dim, proj_dim=args.proj_dim,
@@ -317,7 +293,6 @@ class Experiment:
                 model.train()
                 graph_learner.train()
 
-                # loss, Adj = self.loss_gcl(model, graph_learner, features, anchor_adj, anchor_weight_adj)
                 loss, Adj, new_features = self.loss_gcl(model, graph_learner, features, anchor_adj, anchor_weight_adj)
 
                 optimizer_cl.zero_grad()
